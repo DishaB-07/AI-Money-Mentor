@@ -1,0 +1,80 @@
+@import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Syne:wght@600;700;800&display=swap');
+
+@theme {
+  --font-sans: "DM Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-syne: "Syne", sans-serif;
+}
+
+@layer base {
+  body {
+    @apply bg-white text-gray-900 antialiased font-sans;
+  }
+}
+
+@layer utilities {
+  .animate-fade-up {
+    animation: fade-up 0.5s ease-out forwards;
+  }
+
+  @keyframes fade-up {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .prose p {
+    @apply mb-3 last:mb-0 first:mt-0;
+  }
+  .prose ul, .prose ol {
+    @apply mb-3 pl-6 space-y-1;
+  }
+  .prose ul {
+    @apply list-disc;
+  }
+  .prose ol {
+    @apply list-decimal;
+  }
+  .prose li {
+    @apply pl-1;
+  }
+  .prose li::marker {
+    @apply text-gray-400 font-bold;
+  }
+  .prose strong {
+    @apply font-bold text-gray-900;
+  }
+  .prose hr {
+    @apply my-4 border-t border-gray-200;
+  }
+  
+  .prose-orange li::marker {
+    @apply text-orange-500;
+  }
+  .prose-orange strong {
+    @apply text-orange-900;
+  }
+
+  .prose-invert {
+    @apply text-gray-100;
+  }
+  .prose-invert strong {
+    @apply text-white font-bold;
+  }
+  .prose-invert li::marker {
+    @apply text-gray-400;
+  }
+}

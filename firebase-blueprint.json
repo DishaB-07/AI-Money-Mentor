@@ -1,0 +1,41 @@
+{
+  "entities": {
+    "userProfile": {
+      "title": "User Profile",
+      "description": "User's financial profile and settings",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "displayName": { "type": "string" },
+        "email": { "type": "string" },
+        "photoURL": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "email"]
+    },
+    "calculationHistory": {
+      "title": "Calculation History",
+      "description": "History of financial calculations performed by the user",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "type": { "type": "string", "enum": ["tax", "fire", "health"] },
+        "input": { "type": "object" },
+        "output": { "type": "object" },
+        "aiInsights": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "type", "input", "output", "createdAt"]
+    }
+  },
+  "firestore": {
+    "/users/{uid}": {
+      "schema": "userProfile",
+      "description": "Store user profile information"
+    },
+    "/users/{uid}/history/{calculationId}": {
+      "schema": "calculationHistory",
+      "description": "Store calculation history for each user"
+    }
+  }
+}
