@@ -94,10 +94,10 @@ server.ts       # Express backend
 
 ## 👥 Team SJ AI
 
-| Name | Role | GitHub |
-|---|---|---|
-| **Disha Borse** | Frontend, AI Integration, Firebase | [@DishaB-07](https://github.com/DishaB-07) |
-| **Piyush Borse** | Backend, Architecture, Deployment | [@piyushsb007](https://github.com/piyushsb007) |
+## Team Members
+ **Disha Borse** [@DishaB-07](https://github.com/DishaB-07)
+ 
+ **Piyush Borse** [@piyushsb007](https://github.com/piyushsb007)
 
 ---
 
