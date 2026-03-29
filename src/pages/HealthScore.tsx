@@ -3,7 +3,7 @@ import axios from 'axios';
 import { motion } from 'motion/react';
 import { ShieldAlert, CheckCircle2, AlertCircle, Activity, Radar as RadarIcon } from 'lucide-react';
 import { RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, ResponsiveContainer } from 'recharts';
-import { db, auth } from '../lib/firebase';
+import { db, auth, handleFirestoreError, OperationType } from '../lib/firebase';
 import { collection, addDoc } from 'firebase/firestore';
 import { getFinancialInsight } from '../services/gemini';
 import { useLanguage } from '../App';
@@ -33,14 +33,19 @@ export default function HealthScore() {
       
       // Save to history
       if (auth.currentUser) {
-        await addDoc(collection(db, `users/${auth.currentUser.uid}/history`), {
-          uid: auth.currentUser.uid,
-          type: 'health',
-          input: formData,
-          output: calculations,
-          aiInsights: aiInsights,
-          createdAt: new Date().toISOString()
-        });
+        const path = `users/${auth.currentUser.uid}/history`;
+        try {
+          await addDoc(collection(db, path), {
+            uid: auth.currentUser.uid,
+            type: 'health',
+            input: formData,
+            output: calculations,
+            aiInsights: aiInsights,
+            createdAt: new Date().toISOString()
+          });
+        } catch (error) {
+          handleFirestoreError(error, OperationType.CREATE, path);
+        }
       }
     } catch (err) { 
       console.error('Error calculating score:', err);

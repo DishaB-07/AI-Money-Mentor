@@ -19,7 +19,7 @@
       "type": "object",
       "properties": {
         "uid": { "type": "string" },
-        "type": { "type": "string", "enum": ["tax", "fire", "health"] },
+        "type": { "type": "string", "enum": ["tax", "fire", "health", "couple", "xray", "events"] },
         "input": { "type": "object" },
         "output": { "type": "object" },
         "aiInsights": { "type": "string" },

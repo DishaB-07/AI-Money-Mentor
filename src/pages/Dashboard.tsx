@@ -1,7 +1,7 @@
+import React, { useContext } from 'react';
 import { Link } from 'react-router-dom';
-import { ShieldCheck, Wallet, TrendingUp, Heart, Sparkles, Zap } from 'lucide-react';
+import { Activity, Target, Calculator, Heart, TrendingUp, MessageSquare, Sparkles, ArrowRight, ShieldCheck, Zap, Globe } from 'lucide-react';
 import { motion } from 'motion/react';
-import { cn } from '../lib/utils';
 import { useLanguage } from '../App';
 
 export default function Dashboard() {
@@ -9,116 +9,197 @@ export default function Dashboard() {
 
   const t = {
     English: {
-      title: 'Financial Planning for the 95%',
-      subtitle: 'AI-powered, structured financial planning that usually costs ₹25,000/year—now free for you.',
-      live: 'Live: 131+ Indians building wealth today',
-      score: 'Get Health Score',
-      mentor: 'Talk to AI Mentor',
-      features: [
-        { icon: <ShieldCheck className="text-[#D97706] mb-4" size={32} />, title: 'Money Health Score', desc: 'Find gaps in your emergency funds and insurance coverage instantly.', color: 'border-t-[#D97706]', path: '/score' },
-        { icon: <TrendingUp className="text-[#059669] mb-4" size={32} />, title: 'FIRE Roadmap', desc: 'Calculate exactly how much SIP you need to retire early and live free.', color: 'border-t-[#059669]', path: '/fire' },
-        { icon: <Wallet className="text-blue-500 mb-4" size={32} />, title: 'Tax Optimizer', desc: 'Old vs New regime calculator with smart deduction suggestions.', color: 'border-t-blue-500', path: '/tax' },
-        { icon: <Heart className="text-pink-500 mb-4" size={32} />, title: 'Couple Planner', desc: 'India\'s first joint financial planning tool for partners.', color: 'border-t-pink-500', path: '/couple' },
-        { icon: <Zap className="text-yellow-500 mb-4" size={32} />, title: 'Portfolio X-Ray', desc: 'Upload CAS statement to find overlap and expense ratio drag.', color: 'border-t-yellow-500', path: '/xray' },
-        { icon: <Sparkles className="text-purple-500 mb-4" size={32} />, title: 'Life Events', desc: 'AI advisor for marriage, new baby, bonus, or inheritance.', color: 'border-t-purple-500', path: '/events' }
-      ]
+      hero: {
+        title: 'Financial Planning for the',
+        subtitle: '95%',
+        desc: 'AI-powered financial wisdom tailored for the Indian middle class. Secure your future with DhanSetu.',
+        cta: 'Get Started'
+      },
+      features: {
+        score: { title: 'Health Score', desc: 'Get your financial grade in 5 mins' },
+        fire: { title: 'FIRE Roadmap', desc: 'Plan your early retirement' },
+        tax: { title: 'Tax Wizard', desc: 'Optimize Old vs New regime' },
+        couple: { title: 'Couple Planner', desc: 'Joint goals for partners' },
+        xray: { title: 'Portfolio X-Ray', desc: 'Deep dive into your CAS' },
+        chat: { title: 'AI Mentor', desc: 'Chat with your financial guide' }
+      }
     },
     Hindi: {
-      title: '95% भारतीयों के लिए वित्तीय योजना',
-      subtitle: 'AI-संचालित, संरचित वित्तीय योजना जो आमतौर पर ₹25,000/वर्ष की होती है—अब आपके लिए मुफ्त।',
-      live: 'लाइव: 131+ भारतीय आज अपनी संपत्ति बना रहे हैं',
-      score: 'हेल्थ स्कोर प्राप्त करें',
-      mentor: 'AI मेंटर से बात करें',
-      features: [
-        { icon: <ShieldCheck className="text-[#D97706] mb-4" size={32} />, title: 'मनी हेल्थ स्कोर', desc: 'आपातकालीन फंड और बीमा कवरेज में कमियों का तुरंत पता लगाएं।', color: 'border-t-[#D97706]', path: '/score' },
-        { icon: <TrendingUp className="text-[#059669] mb-4" size={32} />, title: 'FIRE रोडमैप', desc: 'सटीक गणना करें कि आपको जल्दी रिटायर होने के लिए कितने SIP की आवश्यकता है।', color: 'border-t-[#059669]', path: '/fire' },
-        { icon: <Wallet className="text-blue-500 mb-4" size={32} />, title: 'टैक्स ऑप्टिमाइज़र', desc: 'स्मार्ट कटौती सुझावों के साथ पुरानी बनाम नई व्यवस्था कैलकुलेटर।', color: 'border-t-blue-500', path: '/tax' },
-        { icon: <Heart className="text-pink-500 mb-4" size={32} />, title: 'कपल प्लानर', desc: 'पार्टनर्स के लिए भारत का पहला संयुक्त वित्तीय नियोजन उपकरण।', color: 'border-t-pink-500', path: '/couple' },
-        { icon: <Zap className="text-yellow-500 mb-4" size={32} />, title: 'पोर्टफोलियो एक्स-रे', desc: 'ओवरलैप और एक्सपेंस रेशियो ड्रैग खोजने के लिए CAS स्टेटमेंट अपलोड करें।', color: 'border-t-yellow-500', path: '/xray' },
-        { icon: <Sparkles className="text-purple-500 mb-4" size={32} />, title: 'लाइफ इवेंट्स', desc: 'शादी, नए बच्चे, बोनस या विरासत के लिए AI सलाहकार।', color: 'border-t-purple-500', path: '/events' }
-      ]
+      hero: {
+        title: 'वित्तीय योजना',
+        subtitle: '95% के लिए',
+        desc: 'भारतीय मध्यम वर्ग के लिए AI-संचालित वित्तीय ज्ञान। धनसेतु के साथ अपना भविष्य सुरक्षित करें।',
+        cta: 'शुरू करें'
+      },
+      features: {
+        score: { title: 'हेल्थ स्कोर', desc: '5 मिनट में अपना वित्तीय ग्रेड प्राप्त करें' },
+        fire: { title: 'FIRE रोडमैप', desc: 'अपनी जल्दी सेवानिवृत्ति की योजना बनाएं' },
+        tax: { title: 'टैक्स विजार्ड', desc: 'पुराने बनाम नए शासन को अनुकूलित करें' },
+        couple: { title: 'कपल प्लानर', desc: 'साझेदारों के लिए संयुक्त लक्ष्य' },
+        xray: { title: 'पोर्टफोलियो एक्स-रे', desc: 'अपने CAS का गहरा विश्लेषण' },
+        chat: { title: 'AI मेंटर', desc: 'अपने वित्तीय मार्गदर्शक के साथ चैट करें' }
+      }
     },
     Hinglish: {
-      title: 'Financial Planning for the 95%',
-      subtitle: 'AI-powered financial planning jo usually ₹25,000/year cost karti hai—ab aapke liye free.',
-      live: 'Live: 131+ Indians building wealth today',
-      score: 'Get Health Score',
-      mentor: 'Talk to AI Mentor',
-      features: [
-        { icon: <ShieldCheck className="text-[#D97706] mb-4" size={32} />, title: 'Money Health Score', desc: 'Emergency funds aur insurance coverage mein gaps find karein instantly.', color: 'border-t-[#D97706]', path: '/score' },
-        { icon: <TrendingUp className="text-[#059669] mb-4" size={32} />, title: 'FIRE Roadmap', desc: 'Calculate karein kitna SIP chahiye early retirement ke liye.', color: 'border-t-[#059669]', path: '/fire' },
-        { icon: <Wallet className="text-blue-500 mb-4" size={32} />, title: 'Tax Optimizer', desc: 'Old vs New regime calculator with smart deduction suggestions.', color: 'border-t-blue-500', path: '/tax' },
-        { icon: <Heart className="text-pink-500 mb-4" size={32} />, title: 'Couple Planner', desc: 'Partners ke liye India ka pehla joint financial planning tool.', color: 'border-t-pink-500', path: '/couple' },
-        { icon: <Zap className="text-yellow-500 mb-4" size={32} />, title: 'Portfolio X-Ray', desc: 'CAS statement upload karein overlap aur expense ratio check karne ke liye.', color: 'border-t-yellow-500', path: '/xray' },
-        { icon: <Sparkles className="text-purple-500 mb-4" size={32} />, title: 'Life Events', desc: 'Marriage, baby, bonus, ya inheritance ke liye AI advisor.', color: 'border-t-purple-500', path: '/events' }
-      ]
+      hero: {
+        title: 'Financial Planning for the',
+        subtitle: '95%',
+        desc: 'AI-powered financial wisdom tailored for the Indian middle class. Secure your future with DhanSetu.',
+        cta: 'Get Started'
+      },
+      features: {
+        score: { title: 'Health Score', desc: 'Get your financial grade in 5 mins' },
+        fire: { title: 'FIRE Roadmap', desc: 'Plan your early retirement' },
+        tax: { title: 'Tax Wizard', desc: 'Optimize Old vs New regime' },
+        couple: { title: 'Couple Planner', desc: 'Joint goals for partners' },
+        xray: { title: 'Portfolio X-Ray', desc: 'Deep dive into your CAS' },
+        chat: { title: 'AI Mentor', desc: 'Chat with your financial guide' }
+      }
     }
   }[language as 'English' | 'Hindi' | 'Hinglish'];
 
-  return (
-    <motion.div 
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="max-w-5xl mx-auto"
-    >
-      <div className="bg-gradient-to-r from-[#D97706] to-[#059669] rounded-3xl p-8 md:p-12 text-white mb-8 shadow-lg relative overflow-hidden">
-        <div className="relative z-10">
-          <span className="bg-white/20 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider mb-4 inline-block">
-            🔴 {t.live}
-          </span>
-          <h1 className="text-4xl md:text-6xl font-extrabold mb-4 font-syne leading-tight whitespace-pre-line">{t.title.replace('for', '\nfor')}</h1>
-          <p className="text-lg opacity-90 max-w-md mb-8 font-sans">{t.subtitle}</p>
-          <div className="flex flex-col sm:flex-row gap-4">
-            <Link to="/score" className="bg-white text-gray-900 px-8 py-3 rounded-full font-bold shadow-md hover:scale-105 transition-transform text-center">{t.score}</Link>
-            <Link to="/chat" className="bg-black/20 text-white px-8 py-3 rounded-full font-bold hover:bg-black/30 transition-all text-center backdrop-blur-sm">{t.mentor}</Link>
-          </div>
-        </div>
-        <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2 blur-3xl" />
-      </div>
+  const features = [
+    { id: 'score', path: '/score', icon: Activity, color: 'bg-blue-50 text-blue-600', span: 'col-span-1 md:col-span-2' },
+    { id: 'fire', path: '/fire', icon: Target, color: 'bg-emerald-50 text-emerald-600', span: 'col-span-1' },
+    { id: 'tax', path: '/tax', icon: Calculator, color: 'bg-amber-50 text-amber-600', span: 'col-span-1' },
+    { id: 'couple', path: '/couple', icon: Heart, color: 'bg-rose-50 text-rose-600', span: 'col-span-1 md:col-span-2' },
+    { id: 'xray', path: '/xray', icon: TrendingUp, color: 'bg-indigo-50 text-indigo-600', span: 'col-span-1 md:col-span-2' },
+    { id: 'chat', path: '/chat', icon: MessageSquare, color: 'bg-purple-50 text-purple-600', span: 'col-span-1' },
+  ];
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
-        {t.features.map((item, idx) => (
+  return (
+    <div className="space-y-12">
+      {/* Hero Section */}
+      <section className="relative overflow-hidden rounded-[2rem] bg-gray-900 p-8 md:p-16 text-white">
+        <div className="absolute top-0 right-0 -translate-y-1/2 translate-x-1/4 w-96 h-96 bg-[#D97706] rounded-full blur-[120px] opacity-20" />
+        <div className="absolute bottom-0 left-0 translate-y-1/2 -translate-x-1/4 w-96 h-96 bg-emerald-600 rounded-full blur-[120px] opacity-20" />
+        
+        <div className="relative z-10 max-w-2xl space-y-6">
           <motion.div 
-            key={idx}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: idx * 0.1 }}
-            whileHover={{ y: -8, scale: 1.02 }}
-            className={cn(
-              "bg-[#F9FAFB] rounded-2xl p-6 border border-gray-100 shadow-sm border-t-4 cursor-pointer transition-shadow hover:shadow-xl",
-              item.color
-            )}
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 backdrop-blur-md border border-white/10 text-xs font-bold uppercase tracking-widest text-[#D97706]"
           >
-            <Link to={item.path}>
-              {item.icon}
-              <h3 className="text-xl font-bold mb-2 font-syne">{item.title}</h3>
-              <p className="text-gray-500 text-sm font-sans">{item.desc}</p>
-            </Link>
+            <Sparkles size={14} />
+            AI-Powered Wealth Intelligence
           </motion.div>
-        ))}
-      </div>
-
-      <div className="bg-gray-50 rounded-3xl p-8 border border-gray-100">
-        <h2 className="text-2xl font-bold mb-6 font-syne">Why DhanSetu?</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
-          <div>
-            <h4 className="font-bold mb-2 text-[#D97706]">No Jargon</h4>
-            <p className="text-sm text-gray-600">We speak the language of common Indians. No complex financial terms that confuse you.</p>
-          </div>
-          <div>
-            <h4 className="font-bold mb-2 text-[#059669]">AI-Powered Insights</h4>
-            <p className="text-sm text-gray-600">Get personalized advice from our Gemini-powered AI mentor trained on Indian financial laws.</p>
-          </div>
-          <div>
-            <h4 className="font-bold mb-2 text-blue-500">Completely Free</h4>
-            <p className="text-sm text-gray-600">Quality financial planning shouldn't be a luxury. We're building for the 95%.</p>
-          </div>
-          <div>
-            <h4 className="font-bold mb-2 text-purple-500">Secure & Private</h4>
-            <p className="text-sm text-gray-600">Your data is yours. We use Firebase to ensure your information is securely stored and accessible only to you.</p>
-          </div>
+          
+          <motion.h1 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+            className="text-5xl md:text-7xl font-bold font-syne leading-[0.9] tracking-tight"
+          >
+            {t.hero.title} <span className="text-[#D97706] italic">{t.hero.subtitle}</span>
+          </motion.h1>
+          
+          <motion.p 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            className="text-lg text-gray-400 font-medium leading-relaxed"
+          >
+            {t.hero.desc}
+          </motion.p>
+          
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+            className="flex flex-wrap gap-4 pt-4"
+          >
+            <Link 
+              to="/score" 
+              className="px-8 py-4 bg-[#D97706] hover:bg-[#B45309] text-white rounded-2xl font-bold transition-all flex items-center gap-2 group shadow-lg shadow-[#D97706]/20"
+            >
+              {t.hero.cta}
+              <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
+            </Link>
+            <div className="flex -space-x-3">
+              {[1, 2, 3, 4].map((i) => (
+                <img 
+                  key={i}
+                  src={`https://i.pravatar.cc/100?u=${i}`} 
+                  alt="" 
+                  className="w-12 h-12 rounded-full border-4 border-gray-900"
+                />
+              ))}
+              <div className="w-12 h-12 rounded-full bg-gray-800 border-4 border-gray-900 flex items-center justify-center text-xs font-bold">
+                +10k
+              </div>
+            </div>
+          </motion.div>
         </div>
-      </div>
-    </motion.div>
+      </section>
+
+      {/* Features Bento Grid */}
+      <section className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {features.map((feature, idx) => {
+          const content = t.features[feature.id as keyof typeof t.features];
+          return (
+            <motion.div
+              key={feature.id}
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: idx * 0.05 }}
+              whileHover={{ y: -8 }}
+              className={cn(
+                "group relative p-8 rounded-[2rem] bg-white border border-gray-100 shadow-sm hover:shadow-xl transition-all overflow-hidden",
+                feature.span
+              )}
+            >
+              <div className={cn("inline-flex p-4 rounded-2xl mb-6 transition-transform group-hover:scale-110", feature.color)}>
+                <feature.icon size={28} />
+              </div>
+              
+              <div className="space-y-2">
+                <h3 className="text-2xl font-bold font-syne text-gray-900">{content.title}</h3>
+                <p className="text-gray-500 font-medium leading-relaxed">{content.desc}</p>
+              </div>
+              
+              <Link 
+                to={feature.path} 
+                className="absolute inset-0 z-10"
+                aria-label={content.title}
+              />
+              
+              <div className="absolute bottom-8 right-8 opacity-0 group-hover:opacity-100 transition-opacity">
+                <div className="w-10 h-10 rounded-full bg-gray-900 text-white flex items-center justify-center">
+                  <ArrowRight size={20} />
+                </div>
+              </div>
+            </motion.div>
+          );
+        })}
+      </section>
+
+      {/* Trust Badges */}
+      <section className="grid grid-cols-2 md:grid-cols-4 gap-8 py-12 border-y border-gray-100">
+        <div className="flex flex-col items-center gap-2 text-center">
+          <ShieldCheck className="text-[#D97706]" size={32} />
+          <p className="text-sm font-bold font-syne">Bank-Grade Security</p>
+          <p className="text-[10px] text-gray-400 uppercase tracking-widest">AES-256 Encryption</p>
+        </div>
+        <div className="flex flex-col items-center gap-2 text-center">
+          <Zap className="text-emerald-600" size={32} />
+          <p className="text-sm font-bold font-syne">Real-time Insights</p>
+          <p className="text-[10px] text-gray-400 uppercase tracking-widest">Instant Analysis</p>
+        </div>
+        <div className="flex flex-col items-center gap-2 text-center">
+          <Globe className="text-blue-600" size={32} />
+          <p className="text-sm font-bold font-syne">Multi-Language</p>
+          <p className="text-[10px] text-gray-400 uppercase tracking-widest">English, Hindi, Hinglish</p>
+        </div>
+        <div className="flex flex-col items-center gap-2 text-center">
+          <Sparkles className="text-purple-600" size={32} />
+          <p className="text-sm font-bold font-syne">AI First</p>
+          <p className="text-[10px] text-gray-400 uppercase tracking-widest">Gemini Powered</p>
+        </div>
+      </section>
+    </div>
   );
+}
+
+function cn(...classes: any[]) {
+  return classes.filter(Boolean).join(' ');
 }

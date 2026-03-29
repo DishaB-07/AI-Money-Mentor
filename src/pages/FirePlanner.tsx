@@ -4,7 +4,7 @@ import { motion } from 'motion/react';
 import ReactMarkdown from 'react-markdown';
 import { Target, TrendingUp, Info, LineChart as LineChartIcon } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
-import { db, auth } from '../lib/firebase';
+import { db, auth, handleFirestoreError, OperationType } from '../lib/firebase';
 import { collection, addDoc } from 'firebase/firestore';
 import { getFinancialInsight } from '../services/gemini';
 import { useLanguage } from '../App';
@@ -33,14 +33,19 @@ export default function FirePlanner() {
       
       // Save to history
       if (auth.currentUser) {
-        await addDoc(collection(db, `users/${auth.currentUser.uid}/history`), {
-          uid: auth.currentUser.uid,
-          type: 'fire',
-          input: formData,
-          output: calculations,
-          aiInsights: aiInsights,
-          createdAt: new Date().toISOString()
-        });
+        const path = `users/${auth.currentUser.uid}/history`;
+        try {
+          await addDoc(collection(db, path), {
+            uid: auth.currentUser.uid,
+            type: 'fire',
+            input: formData,
+            output: calculations,
+            aiInsights: aiInsights,
+            createdAt: new Date().toISOString()
+          });
+        } catch (error) {
+          handleFirestoreError(error, OperationType.CREATE, path);
+        }
       }
     } catch (err) { 
       console.error('Error calculating FIRE:', err);

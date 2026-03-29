@@ -1,8 +1,9 @@
 import React, { useState, useEffect, createContext, useContext } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, Link, useLocation, Outlet } from 'react-router-dom';
 import { onAuthStateChanged, signInWithPopup, signOut, User } from 'firebase/auth';
-import { auth, googleProvider } from './lib/firebase';
-import { Activity, Target, Calculator, MessageSquare, LogOut, Home, Menu, X, Heart, Globe, TrendingUp, Sparkles } from 'lucide-react';
+import { doc, setDoc, getDoc, collection, addDoc } from 'firebase/firestore';
+import { auth, db, handleFirestoreError, OperationType, googleProvider } from './lib/firebase';
+import { Activity, Target, Calculator, MessageSquare, LogOut, Home, Menu, X, Heart, Globe, TrendingUp, Sparkles, AlertCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import Dashboard from './pages/Dashboard';
 import HealthScore from './pages/HealthScore';
@@ -339,9 +340,28 @@ export default function App() {
   const [language, setLanguage] = useState('English');
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       setUser(currentUser);
       setLoading(false);
+      
+      if (currentUser) {
+        // Ensure user profile exists in Firestore
+        const userRef = doc(db, 'users', currentUser.uid);
+        try {
+          const userDoc = await getDoc(userRef);
+          if (!userDoc.exists()) {
+            await setDoc(userRef, {
+              uid: currentUser.uid,
+              displayName: currentUser.displayName,
+              email: currentUser.email,
+              photoURL: currentUser.photoURL,
+              createdAt: new Date().toISOString()
+            });
+          }
+        } catch (error) {
+          console.error("Error ensuring user profile:", error);
+        }
+      }
     });
     return unsubscribe;
   }, []);

@@ -3,8 +3,8 @@ import axios from 'axios';
 import { motion, AnimatePresence } from 'motion/react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, Legend } from 'recharts';
 import ReactMarkdown from 'react-markdown';
-import { Heart, Users, TrendingUp, ShieldCheck, Sparkles, Plus, Trash2, Target, FileUp, CheckCircle2, AlertCircle, Loader2, BarChart3 } from 'lucide-react';
-import { db, auth } from '../lib/firebase';
+import { Heart, Users, TrendingUp, ShieldCheck, Sparkles, Plus, Trash2, Target, FileUp, CheckCircle2, AlertCircle, Loader2, BarChart3, Clock } from 'lucide-react';
+import { db, auth, handleFirestoreError, OperationType } from '../lib/firebase';
 import { collection, addDoc } from 'firebase/firestore';
 import { getFinancialInsight, extractFinancialData } from '../services/gemini';
 import { useLanguage } from '../App';
@@ -113,20 +113,56 @@ export default function CouplePlanner() {
       setResult(finalResult);
       
       if (auth.currentUser) {
-        await addDoc(collection(db, `users/${auth.currentUser.uid}/history`), {
-          uid: auth.currentUser.uid,
-          type: 'couple',
-          input: { partner1: p1, partner2: p2, goals: currentGoals },
-          output: calculations,
-          aiInsights: aiInsights,
-          createdAt: new Date().toISOString()
-        });
+        const path = `users/${auth.currentUser.uid}/history`;
+        try {
+          await addDoc(collection(db, path), {
+            uid: auth.currentUser.uid,
+            type: 'couple',
+            input: { partner1: p1, partner2: p2, goals: currentGoals },
+            output: calculations,
+            aiInsights: aiInsights,
+            createdAt: new Date().toISOString()
+          });
+        } catch (error) {
+          handleFirestoreError(error, OperationType.CREATE, path);
+        }
       }
     } catch (err) { 
       console.error('Error calculating couple plan:', err);
       alert('Error calculating joint plan. Please try again.'); 
     }
     setLoading(false);
+  };
+
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('en-IN', {
+      style: 'currency',
+      currency: 'INR',
+      maximumFractionDigits: 0
+    }).format(amount);
+  };
+
+  const getTimeRemaining = (deadline: string) => {
+    if (!deadline) return null;
+    const now = new Date();
+    const target = new Date(deadline + '-01');
+    const diff = target.getTime() - now.getTime();
+    const days = Math.ceil(diff / (1000 * 60 * 60 * 24));
+    
+    if (days < 0) return { text: 'Past Deadline', color: 'text-red-500', bg: 'bg-red-50' };
+    
+    const years = Math.floor(days / 365);
+    const months = Math.floor((days % 365) / 30);
+    
+    let text = '';
+    if (years > 0) text += `${years}y `;
+    text += `${months}m left`;
+    
+    return { 
+      text, 
+      color: days < 180 ? 'text-orange-600' : 'text-green-600',
+      bg: days < 180 ? 'bg-orange-50' : 'bg-green-50'
+    };
   };
 
   const DropZone = ({ partnerNum }: { partnerNum: number }) => (
@@ -140,7 +176,7 @@ export default function CouplePlanner() {
         if (file) handleFileUpload(partnerNum, file);
       }}
       className={`relative mt-4 border-2 border-dashed rounded-xl p-4 transition-all flex flex-col items-center justify-center gap-2 cursor-pointer
-        ${isDragging === partnerNum ? 'border-blue-500 bg-blue-50 scale-[1.02]' : 'border-gray-200 hover:border-gray-300 bg-white'}
+        ${isDragging === partnerNum ? (partnerNum === 1 ? 'border-blue-500 bg-blue-50 scale-[1.02]' : 'border-pink-500 bg-pink-50 scale-[1.02]') : 'border-gray-200 hover:border-gray-300 bg-white'}
         ${processingFile === partnerNum ? 'opacity-50 pointer-events-none' : ''}`}
     >
       <input 
@@ -153,11 +189,11 @@ export default function CouplePlanner() {
           if (file) handleFileUpload(partnerNum, file);
         }}
       />
-      <div className="w-10 h-10 bg-gray-50 rounded-full flex items-center justify-center">
+      <div className={`w-10 h-10 ${partnerNum === 1 ? 'bg-blue-50' : 'bg-pink-50'} rounded-full flex items-center justify-center`}>
         {processingFile === partnerNum ? (
-          <Loader2 className="text-blue-500 animate-spin" size={20} />
+          <Loader2 className={`${partnerNum === 1 ? 'text-blue-500' : 'text-pink-500'} animate-spin`} size={20} />
         ) : (
-          <FileUp className={isDragging === partnerNum ? 'text-blue-500' : 'text-gray-400'} size={20} />
+          <FileUp className={isDragging === partnerNum ? (partnerNum === 1 ? 'text-blue-500' : 'text-pink-500') : 'text-gray-400'} size={20} />
         )}
       </div>
       <div className="text-center">
@@ -183,21 +219,25 @@ export default function CouplePlanner() {
       </div>
       <p className="text-gray-500 mb-8 font-sans">India's first AI-powered joint financial planning tool. Optimize across both incomes and achieve joint goals.</p>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
         {/* Partner 1 */}
         <div className="bg-[#F9FAFB] rounded-2xl p-6 border border-gray-100 shadow-sm flex flex-col">
           <h3 className="font-bold text-lg mb-6 font-syne flex items-center gap-2">
             <Users size={20} className="text-blue-500" /> Partner 1
           </h3>
           <div className="space-y-4 flex-1">
-            {Object.keys(partner1).map((key) => (
+            {Object.entries(partner1).map(([key, value]) => (
               <div key={key}>
-                <label className="block text-[10px] font-bold text-gray-500 mb-1 uppercase tracking-wider">{key.replace(/([A-Z])/g, ' $1')}</label>
+                <label className="block text-[10px] font-bold text-gray-500 mb-1 uppercase tracking-wider">
+                  {key === 'sec80c' ? 'Section 80C' : key === 'sec80d' ? 'Section 80D' : key.replace(/([A-Z])/g, ' $1')}
+                </label>
                 <motion.input 
                   whileFocus={{ scale: 1.01, borderColor: '#3b82f6' }}
                   type="number" 
+                  min={0}
+                  step={1000}
                   className="w-full border-gray-200 border p-2 rounded-xl bg-white outline-none focus:border-blue-500 transition-all text-sm"
-                  value={partner1[key as keyof typeof partner1]} 
+                  value={value} 
                   onChange={(e) => setPartner1({...partner1, [key]: Number(e.target.value)})} 
                 />
               </div>
@@ -212,14 +252,18 @@ export default function CouplePlanner() {
             <Users size={20} className="text-pink-500" /> Partner 2
           </h3>
           <div className="space-y-4 flex-1">
-            {Object.keys(partner2).map((key) => (
+            {Object.entries(partner2).map(([key, value]) => (
               <div key={key}>
-                <label className="block text-[10px] font-bold text-gray-500 mb-1 uppercase tracking-wider">{key.replace(/([A-Z])/g, ' $1')}</label>
+                <label className="block text-[10px] font-bold text-gray-500 mb-1 uppercase tracking-wider">
+                  {key === 'sec80c' ? 'Section 80C' : key === 'sec80d' ? 'Section 80D' : key.replace(/([A-Z])/g, ' $1')}
+                </label>
                 <motion.input 
                   whileFocus={{ scale: 1.01, borderColor: '#ec4899' }}
                   type="number" 
+                  min={0}
+                  step={1000}
                   className="w-full border-gray-200 border p-2 rounded-xl bg-white outline-none focus:border-pink-500 transition-all text-sm"
-                  value={partner2[key as keyof typeof partner2]} 
+                  value={value} 
                   onChange={(e) => setPartner2({...partner2, [key]: Number(e.target.value)})} 
                 />
               </div>
@@ -227,170 +271,234 @@ export default function CouplePlanner() {
           </div>
           <DropZone partnerNum={2} />
         </div>
+      </div>
 
-        {/* Joint Goals & Results */}
-        <div className="space-y-6">
-          {/* Joint Goals Section */}
-          <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm">
-            <div className="flex items-center justify-between mb-6">
-              <h3 className="font-bold text-lg font-syne flex items-center gap-2">
-                <Target size={20} className="text-orange-500" /> Joint Goals
+      {/* Joint Goals & Results Section - Moved Below Partners */}
+      <div className="space-y-8">
+        {/* Joint Goals Section */}
+        <div className="bg-white rounded-3xl p-8 border border-gray-100 shadow-sm overflow-hidden relative">
+          <div className="absolute top-0 right-0 w-64 h-64 bg-orange-50 rounded-full -mr-32 -mt-32 opacity-30" />
+          <div className="flex items-center justify-between mb-8 relative z-10">
+            <div>
+              <h3 className="font-bold text-2xl font-syne flex items-center gap-3">
+                <Target size={28} className="text-orange-500" /> Joint Financial Goals
               </h3>
-              <button 
-                onClick={addGoal}
-                className="p-2 bg-orange-50 text-orange-600 rounded-lg hover:bg-orange-100 transition-colors"
-              >
-                <Plus size={16} />
-              </button>
+              <p className="text-sm text-gray-400 mt-1">Plan your future milestones together</p>
             </div>
-            
-            <div className="space-y-4">
-              <AnimatePresence mode="popLayout">
-                {goals.map((goal) => (
+            <motion.button 
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={addGoal}
+              className="flex items-center gap-2 px-4 py-2 bg-orange-500 text-white rounded-xl font-bold text-sm shadow-lg shadow-orange-200 transition-all"
+            >
+              <Plus size={18} /> Add New Goal
+            </motion.button>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 relative z-10">
+            <AnimatePresence mode="popLayout">
+              {goals.map((goal) => {
+                const timeRemaining = getTimeRemaining(goal.deadline);
+                const progress = Math.round((goal.current / goal.target) * 100);
+                
+                return (
                   <motion.div 
                     key={goal.id}
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, scale: 0.95 }}
-                    className="p-4 bg-gray-50 rounded-xl border border-gray-100 relative group"
+                    className="p-6 bg-white rounded-2xl border border-gray-100 shadow-sm relative group hover:border-orange-200 hover:shadow-md transition-all"
                   >
                     <button 
                       onClick={() => removeGoal(goal.id)}
-                      className="absolute top-2 right-2 p-1 text-gray-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
+                      className="absolute top-4 right-4 p-2 text-gray-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all bg-gray-50 rounded-lg"
                     >
-                      <Trash2 size={14} />
+                      <Trash2 size={16} />
                     </button>
                     
-                    <input 
-                      className="bg-transparent font-bold text-sm w-full outline-none mb-2"
-                      value={goal.title}
-                      onChange={(e) => updateGoal(goal.id, { title: e.target.value })}
-                    />
-                    
-                    <div className="grid grid-cols-2 gap-3 mb-3">
-                      <div>
-                        <label className="text-[9px] font-bold text-gray-400 uppercase">Target (₹)</label>
-                        <input 
-                          type="number"
-                          className="bg-transparent text-xs w-full outline-none border-b border-gray-200 focus:border-orange-500"
-                          value={goal.target}
-                          onChange={(e) => updateGoal(goal.id, { target: Number(e.target.value) })}
-                        />
-                      </div>
-                      <div>
-                        <label className="text-[9px] font-bold text-gray-400 uppercase">Current (₹)</label>
-                        <input 
-                          type="number"
-                          className="bg-transparent text-xs w-full outline-none border-b border-gray-200 focus:border-orange-500"
-                          value={goal.current}
-                          onChange={(e) => updateGoal(goal.id, { current: Number(e.target.value) })}
-                        />
+                    <div className="flex items-start justify-between mb-4">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-xl bg-orange-50 flex items-center justify-center">
+                          <Target className="text-orange-500" size={20} />
+                        </div>
+                        <div>
+                          <input 
+                            className="bg-transparent font-bold text-lg w-full outline-none focus:text-orange-600 transition-colors"
+                            value={goal.title}
+                            onChange={(e) => updateGoal(goal.id, { title: e.target.value })}
+                            placeholder="Goal Name"
+                          />
+                          <div className="flex items-center gap-2 mt-0.5">
+                            {timeRemaining && (
+                              <div className={`flex items-center gap-1 px-2 py-0.5 ${timeRemaining.bg} ${timeRemaining.color} rounded-full text-[10px] font-bold uppercase tracking-wider`}>
+                                <Clock size={10} /> {timeRemaining.text}
+                              </div>
+                            )}
+                          </div>
+                        </div>
                       </div>
                     </div>
                     
-                    {/* Progress Bar */}
-                    <div className="h-1.5 bg-gray-200 rounded-full overflow-hidden">
-                      <motion.div 
-                        initial={{ width: 0 }}
-                        animate={{ width: `${Math.min(100, (goal.current / goal.target) * 100)}%` }}
-                        className="h-full bg-orange-500"
-                      />
+                    <div className="grid grid-cols-2 gap-4 mb-6">
+                      <div className="space-y-1">
+                        <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Target Amount</label>
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-sm font-bold text-gray-400">₹</span>
+                          <input 
+                            type="number"
+                            className="bg-transparent text-base font-black w-full outline-none border-b border-gray-100 focus:border-orange-500 transition-all"
+                            value={goal.target}
+                            onChange={(e) => updateGoal(goal.id, { target: Number(e.target.value) })}
+                          />
+                        </div>
+                      </div>
+                      <div className="space-y-1">
+                        <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Current Savings</label>
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-sm font-bold text-gray-400">₹</span>
+                          <input 
+                            type="number"
+                            className="bg-transparent text-base font-black w-full outline-none border-b border-gray-100 focus:border-orange-500 transition-all"
+                            value={goal.current}
+                            onChange={(e) => updateGoal(goal.id, { current: Number(e.target.value) })}
+                          />
+                        </div>
+                      </div>
                     </div>
-                    <div className="flex justify-between mt-1">
-                      <span className="text-[9px] text-gray-400">{Math.round((goal.current / goal.target) * 100)}% Complete</span>
-                      <span className="text-[9px] text-gray-400">Due: {goal.deadline}</span>
+                    
+                    {/* Progress Visual */}
+                    <div className="space-y-2">
+                      <div className="flex justify-between items-end">
+                        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Progress</span>
+                        <span className="text-sm font-black text-orange-600">{progress}%</span>
+                      </div>
+                      <div className="h-3 bg-gray-100 rounded-full overflow-hidden p-0.5 border border-gray-50">
+                        <motion.div 
+                          initial={{ width: 0 }}
+                          animate={{ width: `${Math.min(100, progress)}%` }}
+                          className="h-full bg-gradient-to-r from-orange-400 to-orange-600 rounded-full shadow-sm"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="mt-4 pt-4 border-t border-gray-50 flex justify-between items-center">
+                      <div className="flex items-center gap-2">
+                        <span className="text-[10px] font-bold text-gray-400 uppercase">Deadline</span>
+                        <input 
+                          type="month"
+                          className="text-xs font-bold text-gray-600 bg-gray-50 px-2 py-1 rounded-lg outline-none focus:ring-1 focus:ring-orange-500"
+                          value={goal.deadline}
+                          onChange={(e) => updateGoal(goal.id, { deadline: e.target.value })}
+                        />
+                      </div>
                     </div>
                   </motion.div>
-                ))}
-              </AnimatePresence>
-            </div>
+                );
+              })}
+            </AnimatePresence>
           </div>
+        </div>
 
+        {/* Optimize Button */}
+        <div className="max-w-md mx-auto w-full">
           <motion.button 
-            whileHover={{ scale: 1.02 }}
+            whileHover={{ scale: 1.02, boxShadow: '0 20px 25px -5px rgb(0 0 0 / 0.1)' }}
             whileTap={{ scale: 0.98 }}
             onClick={calculate} 
             disabled={loading} 
-            className="w-full bg-gradient-to-r from-blue-600 to-pink-600 text-white py-4 rounded-xl font-bold hover:scale-[1.02] transition-all disabled:opacity-50 shadow-lg"
+            className="w-full bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 text-white py-5 rounded-2xl font-black text-lg shadow-xl transition-all disabled:opacity-50 flex items-center justify-center gap-3"
           >
-            {loading ? 'Optimizing Joint Wealth...' : 'Optimize Jointly'}
+            {loading ? (
+              <>
+                <Loader2 className="animate-spin" />
+                <span>Optimizing Joint Wealth...</span>
+              </>
+            ) : (
+              <>
+                <Sparkles size={24} />
+                <span>Optimize Jointly</span>
+              </>
+            )}
           </motion.button>
-
-          {result ? (
-            <motion.div 
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              className="space-y-6"
-            >
-              <div className="bg-white rounded-3xl p-8 border border-gray-100 shadow-sm">
-                <h3 className="text-xl font-bold mb-6 font-syne flex items-center gap-2">
-                  <BarChart3 size={24} className="text-pink-500" /> Joint Financial Overview
-                </h3>
-                
-                <div className="h-80 mb-8">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart
-                      data={[
-                        { name: 'Income', p1: partner1.income, p2: partner2.income },
-                        { name: 'Savings', p1: partner1.savings, p2: partner2.savings },
-                        { name: 'Debt', p1: partner1.debt, p2: partner2.debt }
-                      ]}
-                      margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
-                    >
-                      <XAxis dataKey="name" axisLine={false} tickLine={false} />
-                      <YAxis hide />
-                      <Tooltip 
-                        cursor={{ fill: '#f3f4f6' }}
-                        contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
-                      />
-                      <Legend verticalAlign="top" height={36}/>
-                      <Bar dataKey="p1" name="Partner 1" fill="#3b82f6" radius={[6, 6, 0, 0]} />
-                      <Bar dataKey="p2" name="Partner 2" fill="#ec4899" radius={[6, 6, 0, 0]} />
-                    </BarChart>
-                  </ResponsiveContainer>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  <div className="bg-gray-50 rounded-2xl p-4 border border-gray-100">
-                    <h4 className="text-[10px] font-bold text-gray-400 uppercase mb-1">Combined Net Worth</h4>
-                    <div className="flex items-baseline gap-2">
-                      <span className="text-xl font-black font-syne">₹{result.calculations.combined.netWorth.toLocaleString()}</span>
-                    </div>
-                  </div>
-                  <div className="bg-gray-50 rounded-2xl p-4 border border-gray-100">
-                    <h4 className="text-[10px] font-bold text-gray-400 uppercase mb-1">Joint Savings</h4>
-                    <div className="flex items-baseline gap-2">
-                      <span className="text-xl font-black font-syne">₹{result.calculations.combined.savings.toLocaleString()}</span>
-                    </div>
-                  </div>
-                  <div className="bg-gray-50 rounded-2xl p-4 border border-gray-100">
-                    <h4 className="text-[10px] font-bold text-gray-400 uppercase mb-1">Joint Debt</h4>
-                    <div className="flex items-baseline gap-2">
-                      <span className="text-xl font-black font-syne text-red-500">₹{result.calculations.combined.debt.toLocaleString()}</span>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="mt-8 bg-purple-50 rounded-2xl p-6 border border-purple-100 border-l-4 border-l-purple-600">
-                  <h4 className="font-bold text-lg mb-4 text-black font-syne flex items-center gap-2">
-                    <Sparkles className="text-purple-600" size={20} /> Joint Optimization
-                  </h4>
-                  <div className="text-sm text-gray-600 leading-relaxed font-sans prose prose-sm max-w-none prose-orange">
-                    <ReactMarkdown>{result.ai_insights}</ReactMarkdown>
-                  </div>
-                </div>
-              </div>
-            </motion.div>
-          ) : (
-            <div className="h-full flex flex-col items-center justify-center text-center p-8 bg-gray-50 rounded-2xl border border-dashed border-gray-200">
-              <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
-                <ShieldCheck className="text-gray-400" size={32} />
-              </div>
-              <h3 className="font-bold text-gray-400 mb-2 font-syne">Better Together</h3>
-              <p className="text-xs text-gray-400">Input both partners' data to see how you can optimize your HRA, NPS, and investments together.</p>
-            </div>
-          )}
         </div>
+
+        {/* Results Section */}
+        {result && (
+          <motion.div 
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="space-y-8"
+          >
+            <div className="bg-white rounded-3xl p-8 border border-gray-100 shadow-sm">
+              <h3 className="text-2xl font-bold mb-8 font-syne flex items-center gap-3">
+                <BarChart3 size={28} className="text-pink-500" /> Joint Financial Overview
+              </h3>
+              
+              <div className="h-96 mb-10">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart
+                    data={[
+                      { name: 'Income', p1: partner1.income, p2: partner2.income },
+                      { name: 'Savings', p1: partner1.savings, p2: partner2.savings },
+                      { name: 'Debt', p1: partner1.debt, p2: partner2.debt }
+                    ]}
+                    margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+                  >
+                    <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 12, fontWeight: 600 }} />
+                    <YAxis hide />
+                    <Tooltip 
+                      cursor={{ fill: '#f3f4f6', radius: 8 }}
+                      contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 20px 25px -5px rgb(0 0 0 / 0.1)' }}
+                    />
+                    <Legend verticalAlign="top" height={48} iconType="circle" />
+                    <Bar dataKey="p1" name="Partner 1" fill="#3b82f6" radius={[8, 8, 0, 0]} barSize={40} />
+                    <Bar dataKey="p2" name="Partner 2" fill="#ec4899" radius={[8, 8, 0, 0]} barSize={40} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="bg-blue-50/50 rounded-2xl p-6 border border-blue-100">
+                  <h4 className="text-[10px] font-bold text-blue-400 uppercase tracking-widest mb-2">Combined Net Worth</h4>
+                  <div className="flex items-baseline gap-2">
+                    <span className="text-2xl font-black font-syne text-blue-900">{formatCurrency(result.calculations.combined.netWorth)}</span>
+                  </div>
+                </div>
+                <div className="bg-green-50/50 rounded-2xl p-6 border border-green-100">
+                  <h4 className="text-[10px] font-bold text-green-400 uppercase tracking-widest mb-2">Joint Savings</h4>
+                  <div className="flex items-baseline gap-2">
+                    <span className="text-2xl font-black font-syne text-green-900">{formatCurrency(result.calculations.combined.savings)}</span>
+                  </div>
+                </div>
+                <div className="bg-red-50/50 rounded-2xl p-6 border border-red-100">
+                  <h4 className="text-[10px] font-bold text-red-400 uppercase tracking-widest mb-2">Joint Debt</h4>
+                  <div className="flex items-baseline gap-2">
+                    <span className="text-2xl font-black font-syne text-red-600">{formatCurrency(result.calculations.combined.debt)}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-10 bg-gradient-to-br from-purple-50 to-pink-50 rounded-3xl p-8 border border-purple-100 border-l-8 border-l-purple-600 shadow-sm">
+                <h4 className="font-bold text-xl mb-6 text-purple-900 font-syne flex items-center gap-3">
+                  <Sparkles className="text-purple-600" size={24} /> Joint Strategy & Insights
+                </h4>
+                <div className="text-base text-gray-700 leading-relaxed font-sans prose prose-sm md:prose-base max-w-none prose-purple">
+                  <ReactMarkdown>{result.ai_insights}</ReactMarkdown>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        )}
+
+        {!result && (
+          <div className="h-64 flex flex-col items-center justify-center text-center p-8 bg-gray-50 rounded-3xl border border-dashed border-gray-200">
+            <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center mb-4 shadow-sm">
+              <ShieldCheck className="text-gray-300" size={40} />
+            </div>
+            <h3 className="font-bold text-gray-500 mb-2 font-syne text-lg">Better Together</h3>
+            <p className="text-sm text-gray-400 max-w-md">Input both partners' data to see how you can optimize your HRA, NPS, and investments together.</p>
+          </div>
+        )}
       </div>
     </motion.div>
   );

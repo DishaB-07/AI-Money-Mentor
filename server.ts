@@ -15,7 +15,7 @@ function calculateTax(income: number, sec80c: number, sec80d: number, hraExempti
   const stdDeduction = 50000;
   
   // --- OLD REGIME ---
-  const oldTaxable = Math.max(0, income - stdDeduction - sec80c - sec80d - hraExemption);
+  const oldTaxable = Math.max(0, income - stdDeduction - Math.min(sec80c, 150000) - Math.min(sec80d, 25000) - hraExemption);
   let oldTax = 0;
   if (oldTaxable > 250000) oldTax += (Math.min(oldTaxable, 500000) - 250000) * 0.05;
   if (oldTaxable > 500000) oldTax += (Math.min(oldTaxable, 1000000) - 500000) * 0.20;

@@ -5,7 +5,7 @@ import ReactMarkdown from 'react-markdown';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, PieChart, Pie, Legend } from 'recharts';
 import { Calculator, Sparkles, AlertCircle, Loader2, Wallet } from 'lucide-react';
 import { cn } from '../lib/utils';
-import { db, auth } from '../lib/firebase';
+import { db, auth, handleFirestoreError, OperationType } from '../lib/firebase';
 import { collection, addDoc } from 'firebase/firestore';
 import { getFinancialInsight, extractFinancialData } from '../services/gemini';
 import { useLanguage } from '../App';
@@ -85,14 +85,19 @@ export default function TaxWizard() {
       
       // Save to history
       if (auth.currentUser) {
-        await addDoc(collection(db, `users/${auth.currentUser.uid}/history`), {
-          uid: auth.currentUser.uid,
-          type: 'tax',
-          input: data,
-          output: calculations,
-          aiInsights: aiInsights,
-          createdAt: new Date().toISOString()
-        });
+        const path = `users/${auth.currentUser.uid}/history`;
+        try {
+          await addDoc(collection(db, path), {
+            uid: auth.currentUser.uid,
+            type: 'tax',
+            input: data,
+            output: calculations,
+            aiInsights: aiInsights,
+            createdAt: new Date().toISOString()
+          });
+        } catch (error) {
+          handleFirestoreError(error, OperationType.CREATE, path);
+        }
       }
     } catch (err) { 
       console.error('Error calculating tax:', err);

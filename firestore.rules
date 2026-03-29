@@ -51,15 +51,18 @@ service cloud.firestore {
     function isValidUserProfile(data) {
       return data.uid is string && data.uid.size() > 0 &&
              data.email is string && isValidEmail(data.email) &&
-             isValidDateString(data.createdAt);
+             isValidDateString(data.createdAt) &&
+             (!('displayName' in data) || data.displayName == null || data.displayName is string) &&
+             (!('photoURL' in data) || data.photoURL == null || data.photoURL is string);
     }
 
-    function isValidCalculationHistory(data) {
-      return data.uid is string && data.uid.size() > 0 &&
-             data.type in ["tax", "fire", "health"] &&
+    function isValidCalculationHistory(data, uid) {
+      return data.uid == uid &&
+             data.type in ["tax", "fire", "health", "couple", "xray", "events"] &&
              data.input is map &&
              data.output is map &&
-             isValidDateString(data.createdAt);
+             isValidDateString(data.createdAt) &&
+             (!('aiInsights' in data) || data.aiInsights is string);
     }
 
     // ===============================================================
@@ -72,7 +75,7 @@ service cloud.firestore {
 
       match /history/{calculationId} {
         allow read: if isOwner(uid);
-        allow create: if isOwner(uid) && isValidCalculationHistory(request.resource.data);
+        allow create: if isOwner(uid) && isValidCalculationHistory(request.resource.data, uid);
         allow delete: if isOwner(uid);
       }
     }
