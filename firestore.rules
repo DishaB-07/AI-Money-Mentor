@@ -18,7 +18,7 @@ service cloud.firestore {
     // Document ID: {calculationId}
     // Fields:
     //   - uid: string (required)
-    //   - type: string (required, enum: ["tax", "fire", "health"])
+    //   - type: string (required, enum: ["tax", "fire", "health", "couple", "xray", "events"])
     //   - input: map (required)
     //   - output: map (required)
     //   - aiInsights: string (optional)

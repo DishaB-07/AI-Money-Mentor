@@ -3,7 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate, Link, useLocation, Outlet } fro
 import { onAuthStateChanged, signInWithPopup, signOut, User } from 'firebase/auth';
 import { doc, setDoc, getDoc, collection, addDoc } from 'firebase/firestore';
 import { auth, db, handleFirestoreError, OperationType, googleProvider } from './lib/firebase';
-import { Activity, Target, Calculator, MessageSquare, LogOut, Home, Menu, X, Heart, Globe, TrendingUp, Sparkles, AlertCircle } from 'lucide-react';
+import { Activity, Target, Calculator, MessageSquare, LogOut, Home, Menu, X, Heart, Globe, TrendingUp, Sparkles, AlertCircle, History as HistoryIcon } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import Dashboard from './pages/Dashboard';
 import HealthScore from './pages/HealthScore';
@@ -13,6 +13,7 @@ import ChatMentor from './pages/ChatMentor';
 import CouplePlanner from './pages/CouplePlanner';
 import PortfolioXRay from './pages/PortfolioXRay';
 import LifeEvents from './pages/LifeEvents';
+import History from './pages/History';
 import { cn } from './lib/utils';
 
 // Context for Language
@@ -65,7 +66,8 @@ const Layout = ({ user }: { user: User | null }) => {
         couple: 'Couple Planner',
         xray: 'Portfolio X-Ray',
         events: 'Life Events',
-        chat: 'AI Mentor'
+        chat: 'AI Mentor',
+        history: 'History'
       },
       language: 'Language',
       logout: 'Logout',
@@ -84,7 +86,8 @@ const Layout = ({ user }: { user: User | null }) => {
         couple: 'कपल प्लानर',
         xray: 'पोर्टफोलियो एक्स-रे',
         events: 'लाइफ इवेंट्स',
-        chat: 'AI मेंटर'
+        chat: 'AI मेंटर',
+        history: 'इतिहास'
       },
       language: 'भाषा',
       logout: 'लॉगआउट',
@@ -103,7 +106,8 @@ const Layout = ({ user }: { user: User | null }) => {
         couple: 'Couple Planner',
         xray: 'Portfolio X-Ray',
         events: 'Life Events',
-        chat: 'AI Mentor'
+        chat: 'AI Mentor',
+        history: 'History'
       },
       language: 'Language',
       logout: 'Logout',
@@ -123,7 +127,8 @@ const Layout = ({ user }: { user: User | null }) => {
     { name: t.nav.couple, path: '/couple', icon: <Heart size={20} /> },
     { name: t.nav.xray, path: '/xray', icon: <TrendingUp size={20} /> },
     { name: t.nav.events, path: '/events', icon: <Sparkles size={20} /> },
-    { name: t.nav.chat, path: '/chat', icon: <MessageSquare size={20} /> }
+    { name: t.nav.chat, path: '/chat', icon: <MessageSquare size={20} /> },
+    { name: t.nav.history, path: '/history', icon: <HistoryIcon size={20} /> }
   ];
 
   const handleLogout = () => signOut(auth);
@@ -381,6 +386,7 @@ export default function App() {
               <Route path="xray" element={<PortfolioXRay />} />
               <Route path="events" element={<LifeEvents />} />
               <Route path="chat" element={<ChatMentor />} />
+              <Route path="history" element={<History />} />
             </Route>
           </Routes>
         </BrowserRouter>
